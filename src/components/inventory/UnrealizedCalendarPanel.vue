@@ -279,7 +279,8 @@ defineExpose({ reload: loadCalendar })
   border-radius: 8px;
   padding: 0;
   background: #fafafa;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  border: 1px solid transparent;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   cursor: default;
   user-select: none;
 }
@@ -304,7 +305,7 @@ defineExpose({ reload: loadCalendar })
 
 .day-cell:hover:not(.is-other-month) {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
   z-index: 1;
 }
 
@@ -326,57 +327,50 @@ defineExpose({ reload: loadCalendar })
 }
 
 .is-profit {
-  /* 图中：浅粉底 + 红字 */
-  background: #F7EDEC;
-  color: #8E2F35;
+  background: #fff1f0;
+  border-color: #ffccc7;
+  color: #cf1322;
 }
 
 .is-profit .day-inner {
-  background: #F7EDEC;
+  background: linear-gradient(180deg, #fff7f6 0%, #fff1f0 100%);
 }
 
 .is-loss {
-  /* 图中：浅薄荷绿底 + 绿字 */
-  background: #DDF2EE;
-  color: #1F6F63;
+  background: #f6ffed;
+  border-color: #b7eb8f;
+  color: #3f8600;
 }
 
 .is-loss .day-inner {
-  background: #DDF2EE;
+  background: linear-gradient(180deg, #fbfff6 0%, #f6ffed 100%);
 }
 
 .is-today {
-  /* 今天：深红底 + 白字（按截图效果） */
-  background: #C85B61;
-  color: #fff;
+  border-color: #1677ff;
+  box-shadow: inset 0 0 0 1px #1677ff;
+  position: relative;
 }
 
-.is-today .day-inner {
-  background: #C85B61;
-}
-
-.is-today .day-pnl {
-  color: #fff;
-}
-
-.is-today .day-num {
-  color: #fff;
-}
-
-/* 今天优先级覆盖涨跌底色 */
-.is-today.is-profit,
-.is-today.is-loss {
-  background: #C85B61;
-  color: #fff;
+.is-today::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #1677ff;
 }
 
 .is-empty {
-  background: #f7f7f7;
+  background: #f8fafc;
+  border-color: #eef2f7;
   color: #8c8c8c;
 }
 
 .is-empty .day-inner {
-  background: #f7f7f7;
+  background: #f8fafc;
 }
 
 .is-other-month {

@@ -168,11 +168,16 @@ const renderCalendarChart = () => {
   const max = values.length ? Math.max(...values, 1) : 1
 
   chart.setOption({
+    backgroundColor: 'transparent',
     tooltip: {
+      borderWidth: 0,
+      backgroundColor: 'rgba(15, 23, 42, 0.92)',
+      textStyle: { color: '#fff' },
       formatter: (p: any) => {
         const val = profitMap[p.data[0]]
         if (val == null) return `${p.data[0]}<br/>无卖出盈亏`
-        return `${p.data[0]}<br/>盈亏: ${val >= 0 ? '+' : ''}¥${val.toFixed(2)}`
+        const colorText = val >= 0 ? '上涨' : '亏损'
+        return `${p.data[0]}<br/>${colorText}: ${val >= 0 ? '+' : ''}¥${val.toFixed(2)}`
       }
     },
     visualMap: {
@@ -182,7 +187,8 @@ const renderCalendarChart = () => {
       orient: 'horizontal',
       left: 'center',
       bottom: 0,
-      inRange: { color: ['#3f8600', '#f5f5f5', '#cf1322'] }
+      textStyle: { color: '#595959', fontSize },
+      inRange: { color: ['#d9f7be', '#f8fafc', '#ffccc7'] }
     },
     calendar: {
       top: 50,
@@ -190,7 +196,17 @@ const renderCalendarChart = () => {
       right: 20,
       cellSize: isMobile.value ? ['auto', 18] : ['auto', 22],
       range: calendarYear.value,
-      yearLabel: { show: true },
+      itemStyle: {
+        borderColor: '#eef2f7',
+        borderWidth: 1
+      },
+      splitLine: {
+        lineStyle: {
+          color: '#e5e7eb',
+          width: 1
+        }
+      },
+      yearLabel: { show: true, color: '#262626', fontWeight: 600 },
       dayLabel: { fontSize: isMobile.value ? 10 : 11 },
       monthLabel: { fontSize: isMobile.value ? 10 : 11 }
     },
@@ -209,7 +225,20 @@ const renderCalendarChart = () => {
             if (abs >= 1000) return `${val >= 0 ? '+' : '-'}${(abs / 1000).toFixed(1)}k`
             return `${val >= 0 ? '+' : ''}${abs.toFixed(0)}`
           },
-          color: '#333'
+          color: (p: any) => {
+            const val = profitMap[p.data[0]]
+            if (val == null || val === 0) return '#64748b'
+            return val > 0 ? '#cf1322' : '#3f8600'
+          },
+          fontWeight: 600
+        },
+        emphasis: {
+          itemStyle: {
+            borderColor: '#1677ff',
+            borderWidth: 2,
+            shadowBlur: 12,
+            shadowColor: 'rgba(15, 23, 42, 0.16)'
+          }
         }
       }
     ]

@@ -164,6 +164,19 @@ export function formatInventoryMoney(val?: number | null) {
   return Number(val).toFixed(2)
 }
 
+export function getInventoryPnlRate(group: Pick<InventoryGroupVO, 'totalUnrealizedPnl' | 'totalPurchasePrice'>) {
+  const pnl = group.totalUnrealizedPnl
+  const cost = group.totalPurchasePrice
+  if (pnl == null || cost == null || Number(cost) === 0) return null
+  return (Number(pnl) / Number(cost)) * 100
+}
+
+export function formatInventoryPnlRate(group: Pick<InventoryGroupVO, 'totalUnrealizedPnl' | 'totalPurchasePrice'>) {
+  const rate = getInventoryPnlRate(group)
+  if (rate == null || Number.isNaN(rate)) return '-'
+  return `${rate >= 0 ? '+' : ''}${rate.toFixed(2)}%`
+}
+
 export function inventoryPnlColor(val: number) {
   return val >= 0 ? '#cf1322' : '#3f8600'
 }

@@ -66,12 +66,16 @@
               <a-tag v-else color="orange" size="small">无市价</a-tag>
             </template>
             <template v-if="column.key === 'pnl'">
-              <span
+              <div
                 v-if="record.totalUnrealizedPnl != null"
+                class="pnl-cell"
                 :style="{ color: pnlColor(record.totalUnrealizedPnl) }"
               >
-                {{ record.totalUnrealizedPnl >= 0 ? '+' : '' }}¥{{ formatMoney(record.totalUnrealizedPnl) }}
-              </span>
+                <span class="pnl-amount">
+                  {{ record.totalUnrealizedPnl >= 0 ? '+' : '' }}¥{{ formatMoney(record.totalUnrealizedPnl) }}
+                </span>
+                <span class="pnl-rate">{{ formatPnlRate(record) }}</span>
+              </div>
               <span v-else>-</span>
             </template>
             <template v-if="column.key === 'action'">
@@ -157,7 +161,7 @@
 import { ref, computed } from 'vue'
 import { message } from 'ant-design-vue'
 import type { InventoryGroupVO, ItemVO } from '@/types'
-import { formatInventoryMoney, inventoryPnlColor } from '@/composables/useInventoryData'
+import { formatInventoryMoney, formatInventoryPnlRate, inventoryPnlColor } from '@/composables/useInventoryData'
 import {
   displayWearLevel,
   getWearLevelColor,
@@ -213,7 +217,7 @@ const mainColumns = [
   { title: '数量', dataIndex: 'count', key: 'count', width: 68, align: 'center' as const },
   { title: '均价', key: 'avgPrice', width: 96 },
   { title: '市价', key: 'currentPrice', width: 100 },
-  { title: '浮动盈亏', key: 'pnl', width: 100 },
+  { title: '浮动盈亏', key: 'pnl', width: 118 },
   { title: '操作', key: 'action', width: 180, fixed: 'right' as const }
 ]
 
@@ -304,6 +308,7 @@ const emitBindGroup = (group: InventoryGroupVO) => {
 }
 
 const formatMoney = formatInventoryMoney
+const formatPnlRate = formatInventoryPnlRate
 const pnlColor = inventoryPnlColor
 
 const openDetail = (group: InventoryGroupVO) => {
@@ -422,6 +427,25 @@ defineExpose({
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+}
+
+.pnl-cell {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  line-height: 1.2;
+}
+
+.pnl-amount {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.pnl-rate {
+  font-size: 12px;
+  font-weight: 600;
+  opacity: 0.82;
 }
 
 .action-link,
