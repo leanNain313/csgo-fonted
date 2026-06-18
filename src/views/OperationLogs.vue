@@ -15,6 +15,7 @@
           <a-select-option value="注册">注册</a-select-option>
           <a-select-option value="登出">登出</a-select-option>
           <a-select-option value="忘记密码">忘记密码</a-select-option>
+          <a-select-option value="发送验证码">发送验证码</a-select-option>
           <a-select-option value="修改密码">修改密码</a-select-option>
           <a-select-option value="修改交易记录">修改交易记录</a-select-option>
         </a-select>
@@ -79,6 +80,11 @@
         <a-descriptions-item label="操作类型">{{ currentLog.operation }}</a-descriptions-item>
         <a-descriptions-item label="用户名">{{ currentLog.username || '-' }}</a-descriptions-item>
         <a-descriptions-item label="IP地址">{{ currentLog.ip }}</a-descriptions-item>
+        <a-descriptions-item label="归属地">{{ currentLog.ipLocation || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="国家">{{ currentLog.ipCountry || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="省份">{{ currentLog.ipRegion || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="城市">{{ currentLog.ipCity || '-' }}</a-descriptions-item>
+        <a-descriptions-item label="运营商">{{ currentLog.ipIsp || '-' }}</a-descriptions-item>
         <a-descriptions-item label="方法">{{ currentLog.method }}</a-descriptions-item>
         <a-descriptions-item label="状态">
           <a-tag :color="currentLog.status === 'SUCCESS' ? 'green' : 'red'">
@@ -132,6 +138,7 @@ const columns = [
   { title: '操作类型', dataIndex: 'operation', key: 'operation', width: 120 },
   { title: '用户名', dataIndex: 'username', key: 'username', width: 100 },
   { title: 'IP地址', dataIndex: 'ip', key: 'ip', width: 130 },
+  { title: '归属地', dataIndex: 'ipLocation', key: 'ipLocation', width: 180, ellipsis: true },
   { title: '状态', key: 'status', width: 80 },
   { title: '执行时间', key: 'executionTime', width: 100 },
   { title: '操作时间', dataIndex: 'createTime', key: 'createTime', width: 170 },

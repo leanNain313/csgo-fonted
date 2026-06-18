@@ -18,12 +18,22 @@ export interface UserResetPasswordDTO {
   newPassword: string
 }
 
+export interface IpLocationVO {
+  ip?: string
+  country?: string
+  region?: string
+  city?: string
+  isp?: string
+  location?: string
+}
+
 export interface UserVO {
   id: number
   username: string
   email: string
   role: 'USER' | 'ADMIN'
   token: string
+  loginInfo?: IpLocationVO
 }
 
 export const register = (data: UserRegisterDTO) => {

@@ -260,7 +260,17 @@ const handleLogin = async () => {
     const user = await login(loginForm)
     setToken(user.token)
     setUser(user)
-    message.success('登录成功')
+    if (user.loginInfo) {
+      sessionStorage.setItem('loginInfo', JSON.stringify({
+        ip: user.loginInfo.ip,
+        location: user.loginInfo.location,
+        country: user.loginInfo.country,
+        region: user.loginInfo.region,
+        city: user.loginInfo.city,
+        isp: user.loginInfo.isp,
+        loginTime: new Date().toISOString()
+      }))
+    }
     router.push(getPostAuthPath())
   } finally {
     loading.value = false

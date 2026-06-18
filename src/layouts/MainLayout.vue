@@ -128,6 +128,7 @@
         </div>
       </a-layout-content>
     </a-layout>
+    <LoginInfoBanner />
   </a-layout>
 </template>
 
@@ -149,6 +150,7 @@ import {
 import { getUser, logout, isAdmin, setUser, type AuthUser } from '@/utils/auth'
 import { getCurrentUser } from '@/api/user'
 import SidebarUserPanel from '@/components/SidebarUserPanel.vue'
+import LoginInfoBanner from '@/components/LoginInfoBanner.vue'
 
 const router = useRouter()
 const route = useRoute()

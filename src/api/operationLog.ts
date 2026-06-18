@@ -9,6 +9,11 @@ export interface OperationLogVO {
   params: string
   result: string
   ip: string
+  ipCountry?: string
+  ipRegion?: string
+  ipCity?: string
+  ipIsp?: string
+  ipLocation?: string
   status: string
   errorMsg: string
   executionTime: number
