@@ -78,6 +78,11 @@
               </div>
               <span v-else>-</span>
             </template>
+            <template v-if="column.key === 'cooldown'">
+              <a-tag :color="groupCooldownStatus(record).ready ? 'success' : 'warning'" size="small">
+                {{ groupCooldownStatus(record).label }}
+              </a-tag>
+            </template>
             <template v-if="column.key === 'action'">
               <a-space :size="4" wrap>
                 <a-button type="link" size="small" class="action-link" @click="openDetail(record)">详情</a-button>
@@ -134,6 +139,11 @@
           <template v-if="column.key === 'purchasePrice'">
             ¥{{ formatMoney(record.purchasePrice) }}
           </template>
+          <template v-else-if="column.key === 'cooldown'">
+            <a-tag :color="itemCooldownStatus(record).ready ? 'success' : 'warning'" size="small">
+              {{ itemCooldownStatus(record).label }}
+            </a-tag>
+          </template>
           <template v-if="column.key === 'action'">
             <a-space :size="4" wrap>
               <a-button type="link" size="small" class="action-sell" @click="emitSell([record])">
@@ -169,6 +179,7 @@ import {
   hasWearLevel
 } from '@/utils/wearLevel'
 import { needsCatalogBind, groupNeedsCatalogBind, findFirstUnboundItem } from '@/utils/itemCatalog'
+import { getCooldownStatus, getGroupCooldownStatus } from '@/utils/tradeCooldown'
 
 const props = defineProps<{
   groups: InventoryGroupVO[]
@@ -215,6 +226,7 @@ const mainColumns = [
   { title: '饰品信息', key: 'itemInfo', width: 260, fixed: 'left' as const },
   { title: '磨损', key: 'wearLevel', width: 120 },
   { title: '数量', dataIndex: 'count', key: 'count', width: 68, align: 'center' as const },
+  { title: '冷却', key: 'cooldown', width: 110 },
   { title: '均价', key: 'avgPrice', width: 96 },
   { title: '市价', key: 'currentPrice', width: 100 },
   { title: '浮动盈亏', key: 'pnl', width: 118 },
@@ -226,8 +238,12 @@ const detailColumns = [
   { title: '磨损', key: 'wearLevel', width: 110 },
   { title: '购入价', key: 'purchasePrice', width: 100 },
   { title: '购入时间', dataIndex: 'purchaseTime', key: 'purchaseTime', width: 170 },
+  { title: '冷却', key: 'cooldown', width: 110 },
   { title: '操作', key: 'action', width: 180 }
 ]
+
+const itemCooldownStatus = (item: ItemVO) => getCooldownStatus(item.purchaseTime)
+const groupCooldownStatus = (group: InventoryGroupVO) => getGroupCooldownStatus(group.items)
 
 const pagination = computed(() => ({
   total: props.groups.length,

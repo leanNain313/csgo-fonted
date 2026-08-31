@@ -140,6 +140,11 @@
                   </span>
                   <span v-else>-</span>
                 </template>
+                <template v-else-if="column.key === 'cooldown'">
+                  <a-tag :color="groupCooldownStatus(record).ready ? 'success' : 'warning'" size="small">
+                    {{ groupCooldownStatus(record).label }}
+                  </a-tag>
+                </template>
                 <template v-if="column.key === 'action'">
                   <a-space>
                     <a-button type="link" size="small" @click="openDetail(record)">详情</a-button>
@@ -177,6 +182,11 @@
           <template v-if="column.key === 'purchasePrice'">
             ¥{{ formatMoney(record.purchasePrice) }}
           </template>
+          <template v-else-if="column.key === 'cooldown'">
+            <a-tag :color="itemCooldownStatus(record).ready ? 'success' : 'warning'" size="small">
+              {{ itemCooldownStatus(record).label }}
+            </a-tag>
+          </template>
           <template v-if="column.key === 'action'">
             <a-space>
               <a-button
@@ -211,6 +221,7 @@ import { getGroupedInventory, refreshPrices } from '@/api/price'
 import { getCategoryTree } from '@/api/itemCategory'
 import type { InventoryGroupVO, ItemVO, ItemCategoryVO } from '@/types'
 import { useWindowSize } from '@/hooks/useWindowSize'
+import { getCooldownStatus, getGroupCooldownStatus } from '@/utils/tradeCooldown'
 
 const OTHER_CATEGORY_KEY = 'other'
 const ALL_CATEGORY_KEY = 'all'
@@ -249,6 +260,7 @@ const groupKey = (g: InventoryGroupVO) => `${g.goodId || g.itemName}`
 const mainColumns = [
   { title: '饰品信息', key: 'itemInfo', width: 260 },
   { title: '数量', dataIndex: 'count', key: 'count', width: 70, align: 'center' as const },
+  { title: '冷却', key: 'cooldown', width: 110 },
   { title: '购入价', key: 'avgPrice', width: 110 },
   { title: '市场价', key: 'currentPrice', width: 110 },
   { title: '浮动盈亏', key: 'pnl', width: 120 },
@@ -260,9 +272,13 @@ const detailColumns = computed(() => {
     { title: '序号', key: 'index', width: 70 },
     { title: '购入价', key: 'purchasePrice', width: 120 },
     { title: '购入时间', dataIndex: 'purchaseTime', key: 'purchaseTime', width: 180 },
+    { title: '冷却', key: 'cooldown', width: 110 },
     { title: '操作', key: 'action', width: 180 }
   ]
 })
+
+const itemCooldownStatus = (item: ItemVO) => getCooldownStatus(item.purchaseTime)
+const groupCooldownStatus = (group: InventoryGroupVO) => getGroupCooldownStatus(group.items)
 
 const categoryCounts = computed(() => {
   const counts: Record<string, number> = { all: 0, other: 0 }

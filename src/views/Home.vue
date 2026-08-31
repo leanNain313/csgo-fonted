@@ -24,6 +24,62 @@
       </div>
     </section>
 
+    <section class="market-section" ref="marketSectionRef">
+      <div class="section-head">
+        <p>大盘实况</p>
+        <h2>CSQAQ 饰品指数与今日成交一览</h2>
+      </div>
+
+      <a-spin :spinning="marketLoading">
+        <div class="market-board">
+          <div class="index-quote-card">
+            <div class="index-quote-main">
+              <div class="index-quote-title">
+                <span>{{ csqaqIndex.name || '饰品指数' }}</span>
+                <span class="info-dot" title="数据来源：CSQAQ">i</span>
+              </div>
+              <div class="index-quote-row" :class="csqaqTrendClass">
+                <span class="index-now">{{ formatIndex(csqaqIndex.now) }}</span>
+                <span class="index-chg">{{ formatSigned(csqaqIndex.amplitude) }}</span>
+                <span class="index-pct">{{ formatIndexRate(csqaqIndex.now, csqaqIndex.amplitude, csqaqIndex.rate) }}</span>
+              </div>
+              <div class="index-quote-time">{{ formatDateTime(csqaqIndex.updatedAt || overview.observedAt) }} 当前时间</div>
+            </div>
+            <div class="index-quote-side">
+              <div class="hl high">
+                <span>今日最高</span>
+                <strong>{{ formatIndex(csqaqIndex.todayHigh) }}</strong>
+              </div>
+              <div class="hl low">
+                <span>今日最低</span>
+                <strong>{{ formatIndex(csqaqIndex.todayLow) }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="metric-panel">
+            <div
+              v-for="(metric, index) in overviewMetrics"
+              :key="metric.key"
+              class="metric-item"
+              :class="{ 'with-divider': index === 1 }"
+            >
+              <div class="metric-head">
+                <span class="metric-title">{{ metric.title }}</span>
+                <span class="metric-ratio" :class="ratioClass(metric.ratio)">
+                  环比: {{ ratioArrow(metric.ratio) }} {{ formatRatioDisplay(metric.ratio) }}
+                </span>
+              </div>
+              <div class="metric-value" :class="metric.tone">
+                {{ formatWan(metric.value) }} <small>万</small>
+              </div>
+              <div class="metric-yesterday">昨日 {{ formatWan(metric.yesterday) }}万</div>
+            </div>
+          </div>
+        </div>
+      </a-spin>
+    </section>
+
     <section class="feature-section">
       <div class="section-head">
         <p>核心能力</p>
@@ -80,17 +136,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { DatabaseOutlined, CalendarOutlined, FundOutlined, ShoppingOutlined } from '@ant-design/icons-vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import dayjs from 'dayjs'
+import { getBroadIndex } from '@/api/marketBroad'
+import type { BroadMarketOverviewVO } from '@/types'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const router = useRouter()
 const heroRef = ref<HTMLElement | null>(null)
+const marketSectionRef = ref<HTMLElement | null>(null)
 const showFloatingCta = ref(false)
+const marketLoading = ref(false)
+const overview = reactive<BroadMarketOverviewVO>({})
+
 const featureCards = [
   {
     title: '库存管理',
@@ -116,6 +179,117 @@ const featureCards = [
 
 const calendarMock = ['positive', 'positive', 'neutral', 'negative', 'negative', 'positive', 'neutral', 'positive']
 
+const csqaqIndex = computed(() => overview.csqaqIndex || {})
+const csqaqTrendClass = computed(() => {
+  const amp = Number(csqaqIndex.value.amplitude ?? csqaqIndex.value.rate ?? 0)
+  if (amp > 0) return 'up'
+  if (amp < 0) return 'down'
+  return ''
+})
+
+const overviewMetrics = computed(() => [
+  {
+    key: 'turnover',
+    title: '¥ 饰品成交额',
+    value: overview.todayTurnover,
+    yesterday: overview.yesterdayTurnover,
+    ratio: overview.todayTradeAmountRatio,
+    tone: 'money'
+  },
+  {
+    key: 'tradeNum',
+    title: '饰品成交量',
+    value: overview.todayTradeNum,
+    yesterday: overview.yesterdayTradeNum,
+    ratio: overview.todayTradeVolumeRatio,
+    tone: 'count'
+  },
+  {
+    key: 'addValuation',
+    title: '¥ 饰品新增额',
+    value: overview.todayAddValuation,
+    yesterday: overview.yesterdayAddValuation,
+    ratio: overview.todayAddAmountRatio,
+    tone: 'money'
+  },
+  {
+    key: 'addNum',
+    title: '饰品新增量',
+    value: overview.todayAddNum,
+    yesterday: overview.yesterdayAddNum,
+    ratio: overview.todayAddNumRatio,
+    tone: 'count'
+  }
+])
+
+const toPercent = (ratio?: number) => {
+  if (ratio == null || Number.isNaN(ratio)) return null
+  return Math.abs(ratio) <= 1 ? ratio * 100 : ratio
+}
+
+/** 指数涨跌幅：由点数差推算，避免 rate 被当成比例再 *100 */
+const formatIndexRate = (now?: number | null, amplitude?: number | null, rate?: number | null) => {
+  if (now != null && amplitude != null && !Number.isNaN(Number(now)) && !Number.isNaN(Number(amplitude))) {
+    const prev = Number(now) - Number(amplitude)
+    if (prev !== 0) {
+      const pct = (Number(amplitude) / prev) * 100
+      return `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`
+    }
+  }
+  if (rate == null || Number.isNaN(Number(rate))) return '--'
+  const pct = Number(rate)
+  return `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`
+}
+
+const formatRatio = (ratio?: number) => {
+  const pct = toPercent(ratio)
+  if (pct == null) return '--'
+  return `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`
+}
+
+const formatRatioDisplay = (ratio?: number) => {
+  const pct = toPercent(ratio)
+  if (pct == null) return '--'
+  return `${pct.toFixed(2)}%`
+}
+
+const ratioArrow = (ratio?: number) => {
+  const pct = toPercent(ratio)
+  if (pct == null) return ''
+  if (pct > 0) return '↑'
+  if (pct < 0) return '↓'
+  return ''
+}
+
+const ratioClass = (ratio?: number) => {
+  const pct = toPercent(ratio)
+  if (pct == null) return ''
+  if (pct > 0) return 'up'
+  if (pct < 0) return 'down'
+  return ''
+}
+
+const formatWan = (value?: number | null) => {
+  if (value == null || Number.isNaN(Number(value))) return '--'
+  return (Number(value) / 10000).toLocaleString('zh-CN', {
+    minimumFractionDigits: 3,
+    maximumFractionDigits: 3
+  })
+}
+
+const formatIndex = (value?: number) => {
+  if (value == null) return '--'
+  return Number(value).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+}
+
+const formatSigned = (value?: number) => {
+  if (value == null) return '--'
+  const n = Number(value)
+  return `${n >= 0 ? '+' : ''}${n.toFixed(2)}`
+}
+
+const formatDateTime = (value?: string) => value ? dayjs(value).format('YYYY-MM-DD HH:mm:ss') : '--'
+
 const goRegister = () => {
   router.push({ path: '/login', query: { tab: 'register' } })
 }
@@ -124,9 +298,22 @@ const goLogin = () => {
   router.push('/login')
 }
 
+const loadMarketOverview = async () => {
+  marketLoading.value = true
+  try {
+    const data = await getBroadIndex({ silent: true })
+    Object.assign(overview, data || {})
+  } catch {
+    // 宣传页失败时静默，保留空态占位
+  } finally {
+    marketLoading.value = false
+  }
+}
+
 let ctx: gsap.Context | null = null
 
 onMounted(() => {
+  loadMarketOverview()
   const root = heroRef.value?.closest('.home-page') as HTMLElement | null
   if (!root) return
 
@@ -150,6 +337,21 @@ onMounted(() => {
       delay: 0.3,
       ease: 'power3.out'
     })
+
+    gsap.fromTo(
+      '.market-board',
+      { y: 36, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.8,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: '.market-section',
+          start: 'top 82%'
+        }
+      }
+    )
 
     gsap.utils.toArray<HTMLElement>('.feature-card').forEach((card, index) => {
       gsap.fromTo(
@@ -216,6 +418,7 @@ onBeforeUnmount(() => {
 }
 
 .hero-section,
+.market-section,
 .feature-section,
 .showcase-section {
   width: min(1180px, calc(100% - 48px));
@@ -326,9 +529,165 @@ onBeforeUnmount(() => {
   color: rgba(226, 232, 240, 0.68);
 }
 
+.market-section,
 .feature-section,
 .showcase-section {
   padding: 26px 0 84px;
+}
+
+.market-board {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.index-quote-card,
+.metric-panel {
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.72), rgba(30, 27, 75, 0.44));
+  border: 1px solid rgba(34, 211, 238, 0.18);
+  box-shadow: 0 22px 54px rgba(0, 0, 0, 0.28), 0 0 34px rgba(139, 92, 246, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(18px);
+}
+
+.index-quote-card {
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 20px 24px;
+}
+
+.index-quote-main { min-width: 0; flex: 1; }
+
+.index-quote-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(234, 242, 255, 0.92);
+}
+
+.info-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1px solid rgba(165, 243, 252, 0.35);
+  font-size: 10px;
+  line-height: 1;
+  color: rgba(165, 243, 252, 0.7);
+  cursor: default;
+}
+
+.index-quote-row {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-weight: 700;
+  color: #eaf2ff;
+}
+
+.index-quote-row.up { color: #f87171; }
+.index-quote-row.down { color: #4ade80; }
+
+.index-now { font-size: 36px; line-height: 1.15; letter-spacing: 0.02em; }
+.index-chg,
+.index-pct { font-size: 18px; }
+
+.index-quote-time {
+  margin-top: 10px;
+  font-size: 12px;
+  color: rgba(165, 243, 252, 0.55);
+}
+
+.index-quote-side {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  min-width: 140px;
+  text-align: right;
+}
+
+.hl {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hl strong { font-size: 16px; font-weight: 700; }
+.hl.high { color: #f87171; }
+.hl.low { color: #4ade80; }
+
+.metric-panel {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  padding: 18px 8px;
+}
+
+.metric-item {
+  padding: 4px 20px;
+  min-width: 0;
+}
+
+.metric-item.with-divider {
+  border-right: 1px solid rgba(34, 211, 238, 0.12);
+}
+
+.metric-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.metric-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(234, 242, 255, 0.9);
+  white-space: nowrap;
+}
+
+.metric-ratio {
+  font-size: 12px;
+  color: rgba(165, 243, 252, 0.55);
+  white-space: nowrap;
+}
+
+.metric-ratio.up { color: #f87171; }
+.metric-ratio.down { color: #4ade80; }
+
+.metric-value {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+}
+
+.metric-value small {
+  font-size: 14px;
+  font-weight: 600;
+  margin-left: 2px;
+}
+
+.metric-value.money { color: #fbbf24; }
+.metric-value.count { color: #38bdf8; }
+
+.metric-yesterday {
+  margin-top: 8px;
+  font-size: 12px;
+  color: rgba(165, 243, 252, 0.5);
 }
 
 .section-head {
@@ -472,10 +831,62 @@ onBeforeUnmount(() => {
   .hero-preview {
     grid-template-columns: 1fr;
   }
+
+  .metric-panel {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 16px;
+  }
+
+  .metric-item.with-divider {
+    border-right: none;
+  }
+
+  .metric-item:nth-child(odd) {
+    border-right: 1px solid rgba(34, 211, 238, 0.12);
+  }
+}
+
+@media (max-width: 768px) {
+  .index-quote-card {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .index-quote-side {
+    text-align: left;
+  }
+
+  .hl {
+    justify-content: flex-start;
+  }
+
+  .index-now {
+    font-size: 30px;
+  }
+
+  .metric-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .metric-item,
+  .metric-item:nth-child(odd) {
+    border-right: none;
+    border-bottom: 1px solid rgba(34, 211, 238, 0.12);
+    padding-bottom: 14px;
+  }
+
+  .metric-item:last-child {
+    border-bottom: none;
+  }
+
+  .metric-value {
+    font-size: 24px;
+  }
 }
 
 @media (max-width: 640px) {
   .hero-section,
+  .market-section,
   .feature-section,
   .showcase-section {
     width: min(100% - 28px, 1180px);

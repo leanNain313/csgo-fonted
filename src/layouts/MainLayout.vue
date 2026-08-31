@@ -22,6 +22,13 @@
             <BarChartOutlined />
             <span>数据统计</span>
           </a-menu-item>
+          <a-sub-menu key="analysis-menu">
+            <template #title>
+              <LineChartOutlined />
+              <span>数据分析</span>
+            </template>
+            <a-menu-item key="/market">大盘行情</a-menu-item>
+          </a-sub-menu>
           <a-menu-item key="/batch-sell">
             <InboxOutlined />
             <span>库存</span>
@@ -49,6 +56,10 @@
           <a-menu-item v-if="isAdminUser" key="/operation-logs">
             <FileTextOutlined />
             <span>操作日志</span>
+          </a-menu-item>
+          <a-menu-item v-if="isAdminUser" key="/users">
+            <TeamOutlined />
+            <span>用户管理</span>
           </a-menu-item>
           <a-menu-item v-if="isAdminUser" key="/admin">
             <ControlOutlined />
@@ -78,6 +89,13 @@
             <BarChartOutlined />
             <span>数据统计</span>
           </a-menu-item>
+          <a-sub-menu key="analysis-menu">
+            <template #title>
+              <LineChartOutlined />
+              <span>数据分析</span>
+            </template>
+            <a-menu-item key="/market">大盘行情</a-menu-item>
+          </a-sub-menu>
           <a-menu-item key="/batch-sell">
             <InboxOutlined />
             <span>库存</span>
@@ -105,6 +123,10 @@
           <a-menu-item v-if="isAdminUser" key="/operation-logs">
             <FileTextOutlined />
             <span>操作日志</span>
+          </a-menu-item>
+          <a-menu-item v-if="isAdminUser" key="/users">
+            <TeamOutlined />
+            <span>用户管理</span>
           </a-menu-item>
           <a-menu-item v-if="isAdminUser" key="/admin">
             <ControlOutlined />
@@ -138,6 +160,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { Modal } from 'ant-design-vue'
 import {
   BarChartOutlined,
+  LineChartOutlined,
   ShoppingCartOutlined,
   UnorderedListOutlined,
   SettingOutlined,
@@ -145,7 +168,8 @@ import {
   FileTextOutlined,
   DatabaseOutlined,
   ControlOutlined,
-  InboxOutlined
+  InboxOutlined,
+  TeamOutlined
 } from '@ant-design/icons-vue'
 import { getUser, logout, isAdmin, setUser, type AuthUser } from '@/utils/auth'
 import { getCurrentUser } from '@/api/user'
@@ -156,7 +180,7 @@ const router = useRouter()
 const route = useRoute()
 const drawerVisible = ref(false)
 const selectedKeys = ref<string[]>([route.path])
-const openKeys = ref<string[]>(['purchase-menu'])
+const openKeys = ref<string[]>(['purchase-menu', 'analysis-menu'])
 const currentUser = ref<AuthUser | null>(null)
 
 const isAdminUser = computed(() => isAdmin())

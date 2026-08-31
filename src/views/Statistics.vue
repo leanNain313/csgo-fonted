@@ -161,6 +161,7 @@ const loadProfitCalendar = async () => {
 const renderCalendarChart = () => {
   if (!calendarChartRef.value) return
   const chart = echarts.init(calendarChartRef.value)
+  const fontSize = isMobile.value ? 10 : 12
   const data = profitCalendar.value
   const profitMap = Object.fromEntries(data.map(i => [i.date, Number(i.value)]))
   const values = data.map(i => Number(i.value))

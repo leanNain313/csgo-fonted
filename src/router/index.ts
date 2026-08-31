@@ -44,6 +44,9 @@ const router = createRouter({
     withMainLayout('/statistics', 'Statistics', () => import('@/views/Statistics.vue'), {
       title: '数据统计'
     }),
+    withMainLayout('/market', 'MarketBroad', () => import('@/views/MarketBroad.vue'), {
+      title: '大盘行情'
+    }),
     withMainLayout('/purchase', 'Purchase', () => import('@/views/Purchase.vue'), {
       title: '饰品购入'
     }),
@@ -71,6 +74,10 @@ const router = createRouter({
     }),
     withMainLayout('/operation-logs', 'OperationLogs', () => import('@/views/OperationLogs.vue'), {
       title: '操作日志',
+      requiresAdmin: true
+    }),
+    withMainLayout('/users', 'UserManage', () => import('@/views/UserManage.vue'), {
+      title: '用户管理',
       requiresAdmin: true
     }),
     withMainLayout('/admin', 'AdminConsole', () => import('@/views/AdminConsole.vue'), {

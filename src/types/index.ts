@@ -170,3 +170,80 @@ export interface CatalogCacheMetaVO {
   categoryCount?: number
   marketCount?: number
 }
+
+export interface BroadMarketRefreshVO {
+  lastRefreshedAt?: string
+  message?: string
+  indexOk?: boolean
+  klineOk?: boolean
+  summaryOk?: boolean
+  klineSuccessCount?: number
+  klineTotalCount?: number
+}
+
+export interface CsqaqIndexQuoteVO {
+  name?: string
+  now?: number
+  amplitude?: number
+  rate?: number
+  todayHigh?: number
+  todayLow?: number
+  consecutiveDays?: number
+  updatedAt?: string
+}
+
+export interface BroadMarketOverviewVO {
+  broadMarketIndex?: number
+  diffYesterday?: number
+  diffYesterdayRatio?: number
+  todayTurnover?: number
+  todayTradeNum?: number
+  todayAddNum?: number
+  todayAddValuation?: number
+  todayTradeAmountRatio?: number
+  todayTradeVolumeRatio?: number
+  todayAddNumRatio?: number
+  todayAddAmountRatio?: number
+  yesterdayTurnover?: number
+  yesterdayTradeNum?: number
+  yesterdayAddNum?: number
+  yesterdayAddValuation?: number
+  csqaqIndex?: CsqaqIndexQuoteVO
+  observedAt?: string
+  upstreamUpdateTime?: number
+  riseFallType?: string
+  riseFallDays?: number
+  performanceScore?: number
+}
+
+export interface BroadMarketKlinePointVO {
+  time: number
+  open: number
+  close: number
+  high: number
+  low: number
+  volume?: number
+}
+
+export interface BroadMarketTurnoverVO {
+  date: string
+  turnover: number
+  firstTurnover?: number
+  turnoverDelta?: number
+  tradeNum?: number
+  addNum?: number
+  addValuation?: number
+  firstObservedAt?: string
+  lastObservedAt?: string
+  snapshotCount?: number
+}
+
+export interface BroadMarketDataStatusVO {
+  source: string
+  dataset: string
+  period?: string
+  lastSuccessAt?: string
+  lastAttemptAt?: string
+  lastError?: string
+  stale: boolean
+}
